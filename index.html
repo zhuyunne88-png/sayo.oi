@@ -742,6 +742,20 @@
     </div>
   </div>
 
+  <!-- ĐĂNG NHẬP QUẢN TRỊ -->
+  <div id="adminLoginModal" class="fixed inset-0 z-[70] bg-ink/40 backdrop-blur-[2px] hidden items-center justify-center p-4" onclick="if(event.target===this) closeAdminModal()">
+    <form onsubmit="submitAdminPin(event)" class="bg-white w-full max-w-xs p-7 shadow-2xl">
+      <div class="eyebrow">quản trị</div>
+      <h3 class="font-serif text-3xl mt-1">Nhập mã PIN</h3>
+      <input id="adminPinInput" type="password" inputmode="numeric" autocomplete="off" class="field mt-5 text-center text-lg tracking-[.4em]" />
+      <p id="adminPinError" class="text-[12px] text-blush-700 mt-2 min-h-[18px]"></p>
+      <div class="mt-3 grid grid-cols-2 gap-3">
+        <button type="button" onclick="closeAdminModal()" class="btn-line !px-3">Hủy</button>
+        <button type="submit" id="adminPinSubmit" class="btn-ink !px-3">Vào</button>
+      </div>
+    </form>
+  </div>
+
   <!-- TOAST -->
   <div id="toast" class="fixed left-1/2 bottom-24 z-[60] opacity-0 pointer-events-none" style="transform: translate(-50%, 12px);">
     <div class="bg-ink text-white text-[13px] px-5 py-3 flex items-center gap-4 shadow-xl">
@@ -888,27 +902,46 @@
     // =======================================================
     // 2. QUẢN TRỊ
     // =======================================================
-    // Mã PIN được kiểm tra trên Google Apps Script — không nằm trong code web
-    async function handleAdminAccess() {
+    // Đăng nhập quản trị bằng hộp nhập PIN ngay trên trang (không dùng prompt của trình duyệt)
+    function handleAdminAccess() {
       if (isAdminLoggedIn) { openAdminPanel(); return; }
-      if (!API_READY) { alert('Chưa kết nối Google Sheets.\nHãy dán link Ứng dụng web (Code.gs) vào GOOGLE_SCRIPT_URL trong index.html.'); return; }
-      const pin = prompt('Vui lòng nhập mã PIN quản trị viên:');
-      if (pin === null || !pin.trim()) return;
+      const m = document.getElementById('adminLoginModal');
+      document.getElementById('adminPinError').textContent = API_READY ? '' : 'Web chưa kết nối Google Sheets (GOOGLE_SCRIPT_URL đang trống).';
+      document.getElementById('adminPinInput').value = '';
+      m.classList.remove('hidden'); m.classList.add('flex');
+      setTimeout(() => document.getElementById('adminPinInput').focus(), 50);
+    }
+    function closeAdminModal() {
+      const m = document.getElementById('adminLoginModal');
+      m.classList.add('hidden'); m.classList.remove('flex');
+    }
+    async function submitAdminPin(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const pin = document.getElementById('adminPinInput').value.trim();
+      const err = document.getElementById('adminPinError');
+      const btn = document.getElementById('adminPinSubmit');
+      if (!pin) { err.textContent = 'Bạn nhập mã PIN nhé.'; return; }
+      if (!API_READY) return;
+      btn.disabled = true; btn.textContent = 'Đang kiểm tra…'; err.textContent = '';
       try {
-        const res = await apiPost({ action: 'admin_login', pin: pin.trim() });
+        const res = await apiPost({ action: 'admin_login', pin });
         if (res.status === 'success') {
           isAdminLoggedIn = true;
-          adminPin = pin.trim();
-          try { sessionStorage.setItem('sayooi_admin', adminPin); } catch (e) {}
+          adminPin = pin;
+          try { sessionStorage.setItem('sayooi_admin', adminPin); } catch (e2) {}
+          closeAdminModal();
           updateAdminStatusUI();
           openAdminPanel();
         } else {
-          alert('Mã PIN không chính xác! Chỉ quản trị viên mới có quyền thao tác.');
+          err.textContent = 'Mã PIN không đúng.';
         }
-      } catch (e) {
-        alert('Không kết nối được Google Sheets, thử lại sau nhé.');
+      } catch (e3) {
+        err.textContent = 'Không kết nối được Google Sheets, thử lại sau nhé.';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Vào';
       }
     }
+
 
     async function apiPost(body) {
       const res = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) });
@@ -2182,7 +2215,7 @@ ${b('Giá về tay = (Giá web Hàn × 21) + Công mua + Cước cân (180k/kg)'
     // 13. KHỞI CHẠY
     // =======================================================
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') { closeProductDetailModal(); toggleSearchBar(false); toggleMobileMenu(false); }
+      if (e.key === 'Escape') { closeProductDetailModal(); closeAdminModal(); toggleSearchBar(false); toggleMobileMenu(false); }
     });
 
     window.addEventListener('DOMContentLoaded', () => {
