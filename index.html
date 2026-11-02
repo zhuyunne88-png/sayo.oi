@@ -641,28 +641,13 @@
     </div>
 
     <div class="space-y-8">
-      <div class="border border-line p-6 space-y-3">
-        <div class="flex items-center justify-between gap-3">
-          <span class="label !mb-0">Hút Sale đa sàn (dùng chung cho sayo.oi &amp; HàBu)</span>
-          <span class="text-[11px] text-soft">Olive Young · Musinsa · KREAM · Coupang · 29CM · Gmarket…</span>
-        </div>
-        <ol class="text-[13px] text-soft space-y-1 list-decimal list-inside leading-relaxed">
-          <li>Bật thanh bookmark (Ctrl+Shift+B), rồi <b class="font-medium text-ink">kéo nút bên dưới thả lên thanh bookmark</b>.</li>
-          <li>Mở trang sale / danh sách sản phẩm của sàn Hàn bất kỳ → bấm bookmark <b class="font-medium text-ink">Hút Sale</b>.</li>
-          <li>Đợi vài giây → bấm <b class="font-medium text-ink">Sao chép JSON</b> → quay lại đây, dán vào ô bên dưới → <b class="font-medium text-ink">Nạp lên web</b>.</li>
-        </ol>
-        <div class="flex flex-wrap items-center gap-4 pt-1">
-          <a id="hutSaleBookmarklet" href="#" onclick="event.preventDefault(); alert('Hãy KÉO nút này thả lên thanh bookmark, đừng bấm vào ở đây nhé!')" class="btn-ink !cursor-grab">⚡ Hút Sale</a>
-          <span class="text-[11px] text-mute">Nút này thay cho nút "Hút Sale Đa Sàn" cũ — dán JSON được vào cả web HàBu.</span>
-        </div>
-      </div>
-
       <div class="bg-paper border border-line p-6 space-y-3">
         <div class="flex items-center justify-between gap-3">
-          <label class="label !mb-0" for="adminImportJsonInput">Thêm sản phẩm nhanh (dán JSON từ Bookmarklet)</label>
-          <span class="text-[11px] text-soft">Tự động đồng bộ online</span>
+          <label class="label !mb-0" for="adminImportJsonInput">Tải sản phẩm lên — chỉ cần nhấn Ctrl + V</label>
+          <span class="text-[11px] text-soft">Hút bằng bookmark "Hút Sale" → về đây nhấn Ctrl + V là xong</span>
         </div>
-        <textarea id="adminImportJsonInput" rows="5" placeholder="Bấm vào đây và nhấn Ctrl + V để dán mã sản phẩm…" class="field-box font-mono text-xs"></textarea>
+        <textarea id="adminImportJsonInput" rows="4" placeholder="Nhấn Ctrl + V ở bất kỳ đâu trên trang này — sản phẩm tự tải lên web &amp; Google Sheets" class="field-box font-mono text-xs"></textarea>
+        <p id="adminImportStatus" class="text-[13px] text-blush-700 min-h-[20px]"></p>
         <div class="flex flex-wrap justify-between items-center gap-3 pt-1">
           <button type="button" onclick="resetToStandardProducts()" class="btn-text !text-[12px]">Nạp lại dữ liệu gốc</button>
           <button type="button" id="adminImportBtn" onclick="handleAdminImportSubmit()" class="btn-ink">Nạp lên web &amp; đồng bộ Google Sheets</button>
@@ -1121,7 +1106,10 @@
         inputEl.value = '';
         renderAdminManageList(); renderCatalogView(); renderIntroTopProducts(); updateAdminCount();
         if (importBtn) { importBtn.disabled = false; importBtn.textContent = 'Nạp lên web & đồng bộ Google Sheets'; }
-        alert(`Đã nạp thành công!\n• Tổng sản phẩm hiện có: ${currentProductsList.length} món.\n• Đã tự động loại bỏ: ${duplicateCount} món bị trùng lặp.`);
+        const added = list.length - duplicateCount;
+        const st = document.getElementById('adminImportStatus');
+        if (st) st.textContent = `✓ Đã tải lên ${added} món mới` + (duplicateCount ? ` (bỏ ${duplicateCount} món trùng)` : '') + ` — kho hiện có ${currentProductsList.length} món.`;
+        showToast(`Đã tải lên ${added} sản phẩm`, false);
       } else {
         alert('Dữ liệu JSON không đúng danh sách sản phẩm!');
       }
@@ -2233,12 +2221,19 @@ ${b('Giá về tay = (Giá web Hàn × 21) + Công mua + Cước cân (180k/kg)'
       }
     }
 
-    // Nút "Hút Sale" (bookmarklet) — mã nguồn: bookmarklet/hut-sale.src.js
-    const HUT_SALE_CODE = "!function(){if(window.__hutSaleRunning)return;window.__hutSaleRunning=!0;const t=location.hostname.toLowerCase(),e=[[\"oliveyoung\",\"Olive Young\",\"Mỹ phẩm\"],[\"coupang\",\"Coupang\",\"Mỹ phẩm\"],[\"kream\",\"KREAM\",\"Thời trang\"],[\"musinsa\",\"Musinsa\",\"Thời trang\"],[\"29cm\",\"29CM\",\"Thời trang\"],[\"wconcept\",\"W Concept\",\"Thời trang\"],[\"zigzag\",\"Zigzag\",\"Thời trang\"],[\"ably\",\"Ably\",\"Thời trang\"],[\"gmarket\",\"Gmarket\",\"Mỹ phẩm\"],[\"11st\",\"11번가\",\"Mỹ phẩm\"],[\"auction\",\"Auction\",\"Mỹ phẩm\"],[\"ssg\",\"SSG\",\"Mỹ phẩm\"],[\"lotteon\",\"Lotte ON\",\"Mỹ phẩm\"],[\"kurly\",\"Kurly\",\"Thực phẩm\"],[\"daiso\",\"Daiso\",\"Mỹ phẩm\"],[\"chicor\",\"Chicor\",\"Mỹ phẩm\"],[\"lalavla\",\"Lalavla\",\"Mỹ phẩm\"],[\"amoremall\",\"Amore Mall\",\"Mỹ phẩm\"],[\"nike\",\"Nike\",\"Thời trang\"],[\"adidas\",\"Adidas\",\"Thời trang\"],[\"naver\",\"Naver Shopping\",\"Mỹ phẩm\"]].find(e=>t.includes(e[0]))||[t,t.replace(/^www\\./,\"\").split(\".\")[0],\"Mỹ phẩm\"],n=e[1],a=e[2],r=t=>{const e=String(t||\"\").replace(/[^0-9]/g,\"\");return e?parseInt(e,10):0},o=t=>(t&&(t.innerText||t.textContent)||\"\").replace(/\\s+/g,\" \").trim(),i=t=>{if(!t)return\"\";if((t=String(t).trim().split(/\\s+/)[0]).startsWith(\"//\"))return\"https:\"+t;try{return new URL(t,location.href).href}catch(e){return t}},l=t=>{const e=t.querySelector(\"img\");if(!e)return\"\";const n=e.getAttribute(\"data-original\")||e.getAttribute(\"data-img-src\")||e.getAttribute(\"data-src\")||e.getAttribute(\"data-lazy\")||(e.getAttribute(\"srcset\")||\"\").split(\",\").pop()||e.currentSrc||e.getAttribute(\"src\")||\"\";return/^data:/.test(n)?\"\":i(n)},c=t=>{const e=t.matches&&t.matches(\"a[href]\")?t:t.querySelector(\"a[href]\")||t.closest(\"a[href]\");return e?i(e.getAttribute(\"href\")):\"\"},s=t=>{const e=o(t).replace(/\\d+\\s?%/g,\" \"),n=[],a=/(\\d{1,3}(?:,\\d{3})+|\\d{4,8})\\s?(?:원|won|₩)?/gi;let i;for(;i=a.exec(e);){const t=r(i[1]);t>=1e3&&t<=5e6&&n.push(t)}return n},d=/(찜|세일|쿠폰|오늘드림|특가|품절|증정|장바구니|담기|무료배송|리뷰|후기|좋아요|랭킹|BEST|NEW|SALE|단독|한정|원$|%)/i,p={oliveyoung:{card:\".prd_info,.cate_prd_info,li[data-ref-goodsno],.goods_item\",brand:\".tx_brand,.brand_name,.brand\",name:\".tx_name,.prd_name,a.goods_name,.name\",price:\".tx_cur .tx_num,.total_price .tx_num,.price .tx_num\",old:\".tx_org .tx_num\"},coupang:{card:'.search-product,li[class*=\"search-product\"],.prod-item,.baby-product',name:\".name,.title,.prod-name\",price:\".price-value,.total-price strong\",old:\".base-price\"},kream:{card:\".product_card,.search_result_item\",brand:\".brand_text,.brand\",name:\".translated_name,.name\",price:\".amount,.price_text,.num\"},musinsa:{card:'.li_box,.goods-list-item,div[class*=\"StyledCard\"],div[class*=\"GoodsItem\"],li[class*=\"goods\"]',brand:'.item_title,.brand,[class*=\"brand\"]',name:'.list_info a,.name,[class*=\"Name\"],[class*=\"name\"]',price:'.price,.txt_price,[class*=\"Price\"],[class*=\"price\"]'}},m=Object.keys(p).find(e=>t.includes(e))?p[Object.keys(p).find(e=>t.includes(e))]:null;function g(){let t=m?[...document.querySelectorAll(m.card)]:[],e=!!t.length;t.length||(t=function(){const t=new Set;document.querySelectorAll(\"a[href] img, img\").forEach(e=>{let n=e.closest(\"li\")||e.parentElement;for(let e=0;e<6&&n&&n!==document.body;e++){const e=o(n);if(e.length>8&&e.length<600&&s(n).length){t.add(n);break}n=n.parentElement}});const e=[...t];return e.filter(t=>!e.some(e=>e!==t&&t.contains(e)))}());const i=new Set,p=[],g=Date.now();return t.forEach(t=>{const h=function(t,e){const a=e=>e?t.querySelector(e):null;let i=o(a(e&&e.brand)),p=o(a(e&&e.name)),m=r(o(a(e&&e.price))),g=r(o(a(e&&e.old)));const h=s(t);if(!m&&h.length&&(m=Math.min.apply(null,h)),!g&&h.length>1){const t=Math.max.apply(null,h);t>m&&(g=t)}if(!p){const e=t.querySelector(\"img\"),n=(t.innerText||\"\").split(\"\\n\").map(t=>t.trim()).filter(t=>t.length>=4&&!/^[\\d,.\\s%원₩~+\\-]+$/.test(t)&&!(t.length<12&&d.test(t)));p=n.sort((t,e)=>e.length-t.length)[0]||e&&e.getAttribute(\"alt\")||\"\"}i||(i=(t.innerText||\"\").split(\"\\n\").map(t=>t.trim()).filter(Boolean).find(t=>t.length>=2&&t.length<=20&&t!==p&&!/[\\d%]/.test(t)&&!d.test(t))||n);return{brand:i,name:(u=p,String(u||\"\").replace(/\\[[^\\]]*\\]/g,\" \").replace(/\\s+/g,\" \").trim()),price:m,old:g,image:l(t),link:c(t)};var u}(t,e?m:null);if(!h.name||!h.price)return;const u=h.link||h.name;if(i.has(u))return;i.add(u);let b=h.name;h.brand&&h.brand!==n&&!b.toLowerCase().includes(h.brand.toLowerCase())&&(b=h.brand+\" \"+b);const f=h.old>h.price;p.push({id:g+p.length,title:b,brand:h.brand||n,mall:n,category:a,krw:h.price,oldKrw:f?h.old:0,isSale:f,link:h.link,image:h.image,variant:\"Chính hãng từ \"+n})}),p}const h=document.createElement(\"div\");h.style.cssText=\"position:fixed;z-index:2147483647;right:16px;bottom:16px;width:360px;max-width:calc(100vw - 32px);background:#fff;color:#1c1a19;border:1px solid #e5dfdc;box-shadow:0 20px 60px rgba(0,0,0,.25);font:13px/1.5 system-ui,sans-serif;padding:16px\",h.innerHTML='<div style=\"display:flex;justify-content:space-between;align-items:center\"><b style=\"font-size:15px\">Hút Sale · '+n+'</b><a href=\"#\" data-x style=\"color:#9b9490;text-decoration:none\">Đóng ✕</a></div><div data-msg style=\"margin:8px 0;color:#5f5a57\">Đang cuộn trang để tải thêm sản phẩm…</div><textarea data-out readonly style=\"width:100%;height:90px;font:11px monospace;border:1px solid #e5dfdc;padding:6px;display:none\"></textarea><div data-btns style=\"display:none;gap:8px;margin-top:8px\"><button data-copy style=\"flex:1;background:#1c1a19;color:#fff;border:0;padding:9px;cursor:pointer\">Sao chép JSON</button><label style=\"display:flex;align-items:center;gap:4px;color:#5f5a57\"><input type=\"checkbox\" data-only> Chỉ hàng sale</label></div>',document.body.appendChild(h);const u=t=>h.querySelector(t);u(\"[data-x]\").onclick=t=>{t.preventDefault(),h.remove(),window.__hutSaleRunning=!1};let b=[];function f(){const t=u(\"[data-only]\").checked?b.filter(t=>t.isSale):b,e=JSON.stringify(t);return u(\"[data-out]\").value=e,u(\"[data-msg]\").innerHTML=t.length?\"Đã hút <b>\"+t.length+\"</b> sản phẩm (\"+b.filter(t=>t.isSale).length+' món đang sale).<br>Bấm <b>Sao chép JSON</b> (nếu chưa tự chép) → vào trang <b>Quản trị</b> của web → dán vào ô \"Thêm sản phẩm nhanh\" → bấm <b>Nạp lên web</b>.':\"Không tìm thấy sản phẩm nào. Hãy mở trang danh sách / trang sale của sàn rồi bấm lại.\",e}function y(t){const e=()=>{u(\"[data-copy]\").textContent=\"Đã sao chép ✓\",setTimeout(()=>u(\"[data-copy]\").textContent=\"Sao chép JSON\",1800)},n=()=>{const t=u(\"[data-out]\");t.style.display=\"block\",t.select();try{document.execCommand(\"copy\"),e()}catch(t){}};navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t).then(e,n):n()}u(\"[data-copy]\").onclick=()=>y(f()),u(\"[data-only]\").onchange=()=>y(f());const x=scrollY;let S=0,_=0;!function t(){const e=document.body.scrollHeight;if(S<8&&e!==_)return _=e,S++,scrollTo(0,e),void setTimeout(t,700);scrollTo(0,x),setTimeout(()=>{try{b=g()}catch(t){return void(u(\"[data-msg]\").textContent=\"Lỗi: \"+t.message)}u(\"[data-out]\").style.display=b.length?\"block\":\"none\",u(\"[data-btns]\").style.display=b.length?\"flex\":\"none\";const t=f();b.length&&y(t),window.__hutSaleRunning=!1},400)}()}();";
-    function setupHutSaleLink() {
-      const a = document.getElementById('hutSaleBookmarklet');
-      if (a) a.href = 'javascript:' + encodeURIComponent(HUT_SALE_CODE);
-    }
+    // Ở trang Quản trị: nhấn Ctrl+V (ở bất kỳ đâu) là tự tải sản phẩm lên
+    document.addEventListener('paste', e => {
+      if (!isAdminLoggedIn) return;
+      const view = document.getElementById('view-admin');
+      if (!view || !view.classList.contains('active-view')) return;
+      const t = (e.clipboardData && e.clipboardData.getData('text')) || '';
+      if (!/^\s*[\[{]/.test(t)) return;
+      e.preventDefault();
+      document.getElementById('adminImportJsonInput').value = t;
+      const st = document.getElementById('adminImportStatus');
+      if (st) st.textContent = 'Đang tải sản phẩm lên…';
+      handleAdminImportSubmit();
+    });
 
     // =======================================================
     // 13. KHỞI CHẠY
@@ -2249,7 +2244,6 @@ ${b('Giá về tay = (Giá web Hàn × 21) + Công mua + Cước cân (180k/kg)'
 
     window.addEventListener('DOMContentLoaded', () => {
       applyShopConfig();
-      setupHutSaleLink();
       buildPetals();
       renderCatalogView();
       renderIntroTopProducts();
